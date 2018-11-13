@@ -19,7 +19,7 @@ endfm
 -------------------------------------------------
 --- myBSMp module
 -------------------------------------------------
-fmod myBSMp is
+fmod myBSM is
 pr META-LEVEL .
 pr INT .
 pr NAT .
