@@ -1,4 +1,4 @@
-### Basic Syntactiv Mutation ###
+### Basic Syntactic Mutation ###
 
 The Basic Syntactic Mutation (BSM) procedure consists of inference rules such as *Coalesce*, *Split*, *Imit*, *MuConflict*, and *ImitCycle*.
 
@@ -6,7 +6,7 @@ The Basic Syntactic Mutation (BSM) procedure consists of inference rules such as
 ### Prerequisites ###
 To run the algorithm you will need to have installed Maude, a high performance reflective language. 
 
-### Install###
+### Install ###
 Download and install Maude from here [Download Maude](http://maude.cs.illinois.edu/w/index.php?title=The_Maude_System).
 
 ### Instructions to run the program ###
