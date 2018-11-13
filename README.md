@@ -26,6 +26,6 @@ Download .maude files to a directory. Run the maude on your machine and navigate
 
 ### Tested Results ###
 
-Unification Problem | Rewrite System | Solution
------------- | ------------- | ------------- 
-`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail`
+Unification Problem | Rewrite System | Solution | Real Time (ms)
+------------ | ------------- | ------------- | ------------- 
+`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail` | `0`
