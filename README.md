@@ -16,16 +16,16 @@ Download .maude files to a directory. Run the maude on your machine and navigate
 
 1. #### Load the file using the following command ####
 
- ``` load _filename.maude_ . ```
+ ` load filename.maude . `
 
 2. #### Testing ####
 
- ```red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) .```
+ `red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) .`
  
- where ```UnPr``` is an unification problem to solve, ```RWS``` is a rewrite system, ```BAL``` represents an empty data structure which eventually tracks the box-status of the terms (`Empty` at the begining), ``N`` is a new variable counter (`0` initially), and ``SUB`` is the substitution or solution. Of course, ``SUB`` is ``none`` initially.
+ where `UnPr` is an unification problem to solve, `RWS` is a rewrite system, `BAL` represents an empty data structure which eventually tracks the box-status of the terms (`Empty` at the begining), `N` is a new variable counter (`0` initially), and `SUB` is the substitution or solution. Of course, `SUB` is `none` initially.
 
 ### Tested Results ###
 
 Unification Problem | Rewrite System | Solution
 ------------ | ------------- | ------------- 
-```'f['x:Nat , 'y:Nat]  =? 'y:Nat```| `emptyrs` | `fail`
+`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail`
