@@ -12,11 +12,13 @@ Download and install Maude from here [Download Maude](http://maude.cs.illinois.e
 ### Instructions to run the program ###
 Download .maude files to a directory. Run the maude on your machine and navigate to directory where the files reside in. 
 
-#### Load the file using the following command ####
+1. #### Load the file using the following command ####
 
- ``` **Load** _filename.maude_ . ```
+ ``` load _filename.maude_ . ```
 
-#### Testing ####
+2. #### Testing ####
 
- ```red in myBSMp : bsmUnify ( p , rws, Empty, 0, none ) .```
+ ```red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) .```
+ 
+ where ```UnPr``` is an unification problem to solve, ```RWS``` is a rewrite system, ```BAL``` represents an empty data structure which eventually tracks the box-status of the terms (Empty at the begining), ``N`` is a new variable counter (0 initially), and ``SUB`` is the substitution or solution. Of course, ``SUB`` is ``none`` initially.
 
