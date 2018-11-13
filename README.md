@@ -14,5 +14,6 @@ Download .maude files to a directory. Run the maude on your machine and navigate
 Load the file using the following command.
 
 > **Load** _file.maude_ .
+
 > red in myBSMp : bsmUnify ( p , rws, emptyrs, 0, none ) .
 
