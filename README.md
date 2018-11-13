@@ -22,7 +22,7 @@ Download .maude files to a directory. Run the maude on your machine and navigate
 
  ```red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) .```
  
- where ```UnPr``` is an unification problem to solve, ```RWS``` is a rewrite system, ```BAL``` represents an empty data structure which eventually tracks the box-status of the terms (Empty at the begining), ``N`` is a new variable counter (0 initially), and ``SUB`` is the substitution or solution. Of course, ``SUB`` is ``none`` initially.
+ where ```UnPr``` is an unification problem to solve, ```RWS``` is a rewrite system, ```BAL``` represents an empty data structure which eventually tracks the box-status of the terms (`Empty` at the begining), ``N`` is a new variable counter (`0` initially), and ``SUB`` is the substitution or solution. Of course, ``SUB`` is ``none`` initially.
 
 ### Tested Results ###
 
