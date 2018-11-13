@@ -13,7 +13,7 @@ Download and install Maude from here [Download Maude](http://maude.cs.illinois.e
 Download .maude files to a directory. Run the maude on your machine and navigate to directory where the files reside in. 
 Load the file using the following command.
 
-> **Load** _file.maude_ .
+> **Load** _filename.maude_ .
 
-> red in myBSMp : bsmUnify ( p , rws, emptyrs, 0, none ) .
+> red in myBSMp : bsmUnify ( p , rws, Empty, 0, none ) .
 
