@@ -1,0 +1,810 @@
+--- Basic Syntactic Mutation algorithm (BSM')
+--- Copy right (c) 2018, Ajay Kumar Eeralla
+--- Author: Ajay Kumar Eeralla (aeeralla@galois.com/ae266@mail.missouri.edu)
+--- Rewrite System
+
+fmod RSYSTEM is
+pr META-LEVEL .
+sorts RewRule RewSystem .
+subsort RewRule < RewSystem .
+var RS : RewSystem .
+op _->_ : Term Term -> RewRule [ctor prec 71] .
+op emptyrs : -> RewSystem [ctor] .
+op _/\_ : RewSystem RewSystem -> RewSystem [ctor assoc comm id: emptyrs format (d ni d d)] .
+---eq RS /\ RS = RS .
+endfm
+
+
+
+-------------------------------------------------
+--- myBSMp module
+-------------------------------------------------
+fmod myBSMp is
+pr META-LEVEL .
+pr INT .
+pr NAT .
+pr CONVERSION .
+pr STRING .
+pr RSYSTEM .
+vars V V1 V2 V3 V4 V5 V6 : Variable .
+vars T T1 T2 T3 T4 T5 T6 : Term .
+vars RL RL1 RL2 : RewRule .
+var RW RW1 RW2 : RewSystem .
+var C  C1 : Constant .
+vars VA VA1 VA2 VA3 : BoxAssign .
+vars BAL BAL1 BAL2 BAL3 : BoxAssignList .
+vars SB SB1 SB2 SB3 SB4 SB5 SB6 : Substitution .
+vars UdPr UdPr1 UdPr2 UdPr3 : UnificandPair .
+vars UnPr UnPr1 UnPr2 UnPr3 : UnificationProblem .
+vars QI QI1 QI2 QI3 : Qid .
+vars TL TL1 TL2 TL3 TL4 TL5 : TermList .
+vars LTL LTL1 LTL2 LTL3 LTL4 LTL5 : LTermList .
+vars TY TY1 TY2 TY3 TY4 : Type .
+var N N1 N2 N3 N4 N5 N6 : Nat .
+vars AS AS1 As2 : Assignment .
+vars ASL ASL1 ASL2 : AssignmentList .
+vars E E1 : empty .
+vars ty ty1 : Type .
+vars B B1 : Bool .
+
+---------------------------------------
+--- sort empty
+---------------------------------------
+
+sort empty .
+subsort empty < Term .
+------------------------------------------
+---aply the rewrite rule and get term 't'
+------------------------------------------
+
+op aplyRewrule : Term RewSystem -> Term .
+ceq aplyRewrule (QI[TL], QI1[TL1]-> T) = T if QI == QI1 .
+eq aplyRewrule (QI[TL], RW ) = QI[TL] [owise] .
+ceq aplyRewrule (QI[TL], ( QI1[TL1] -> T ) /\ RW ) = aplyRewrule (QI[TL], RW ) if QI =/= QI1 .
+eq aplyRewrule (QI[TL], ( QI1[TL1] -> T ) /\ RW ) = T .
+
+-----------------------------------------
+---return the term list 'vec(s)'
+-----------------------------------------
+
+op aplyrlRetTL : Term RewSystem -> TermList .
+ceq aplyrlRetTL (QI[TL], QI1[TL1]-> T) = TL1 if QI == QI1 .
+eq aplyrlRetTL (QI[TL], RW ) = TL [owise] .
+ceq aplyrlRetTL (QI[TL], ( QI1[TL1] -> T ) /\ RW) = aplyrlRetTL (QI[TL], RW ) if QI =/= QI1 .
+eq aplyrlRetTL (QI[TL], ( QI1[TL1] -> T ) /\ RW) = TL1 .
+
+---------Function Symbols ----------------------
+------------------------------------------------
+op f : Term Term -> Term .
+-----op P : Term Term -> Term [ctor assoc comm ] .
+
+---------Since we apply AC unification-----------
+-------- So h:Nat -> Nat-------------------------
+
+---op h : Nat -> Nat [ctor iter] .
+---op h : NzNat -> Nat [ditto] .
+
+------------------------------------------------
+--- IsVar to Check if Term is a variable -------
+------------------------------------------------
+	op IsVar : Term -> Bool .
+    eq IsVar(V) = true .
+    eq IsVar(T) = false [owise] .
+               
+-----------------------------------------------------------
+-----------Get Function symbol------------------------------
+------------------------------------------------------------
+op GetSymbol : Term -> Qid .
+eq GetSymbol (QI1[ T , T1] ) = QI1 .
+eq GetSymbol (QI1[ T , TL] ) = QI1 .
+eq GetSymbol(T) = none [owise] .
+
+-----------Get substitution from UnificationPair-------
+-------------------------------------------------------
+
+op getSubstitution : UnificationPair -> Substitution .
+eq getSubstitution({S:Substitution, N:Nat}) = S:Substitution .
+
+-----------------------------------------------
+----- Assignment Definition -------------------
+-----------------------------------------------
+
+sort AssignmentList .
+subsort Assignment < AssignmentList .
+sort VariableAssign .
+op _ <- _ : Variable Term -> Assignment [ctor prec 63 format (nt d d d)] .
+op fail : -> Assignment .
+
+-------------------------------------------------------------------
+-------------------Convert substituion in to equation -------------
+-------------------------------------------------------------------
+
+op SubToEquation : Substitution -> UnificationProblem .
+eq SubToEquation( V <- T ; SB ) = V =? T /\ SubToEquation (SB) .
+eq SubToEquation (none) = EmptyEq .
+
+---------------------------------------------------------
+--- apply substitution on a Term or TermList ------------
+---------------------------------------------------------
+
+op Substitute : Term Substitution -> Term .
+op Substitute : TermList Substitution -> TermList .
+eq Substitute(T, none) = T .
+eq Substitute(V, ((V <- T) ; SB) ) = T .
+ceq Substitute(V, ((V1 <- T) ; SB) ) = V if V =/= V1 .
+eq Substitute(C, SB) = C .
+eq Substitute(T , fail ) = T .
+eq Substitute(QI1[TL] , SB) = QI1[Substitute(TL , SB)] .
+eq Substitute(_+_(T, T1) , SB) = _+_(Substitute(T, SB), Substitute(T1,SB)) .
+eq Substitute(TL, none) = TL .
+eq Substitute(TL, fail) = TL .
+eq Substitute((T,TL1), SB) = (Substitute(T, SB), Substitute(TL1, SB)) .
+eq Substitute(empty, SB) = empty .
+
+---------------------------------------------------------
+--- apply substitution on substituion -------------------
+---------------------------------------------------------
+op Substitute : Substitution Substitution -> Substitution .
+eq Substitute((V <- T ; SB), SB1) = (V <- (Substitute(T,SB1)) ; Substitute(SB, SB1)) .
+eq Substitute(SB , none) = SB .
+ceq Substitute(SB1 , SB) = SB1 if SB1 == none .
+eq Substitute((V <- V1 ; SB), ((V <- T); SB1)) = Substitute(SB, (V <- T ; V1 <- T ; SB1)) .
+eq Substitute(fail, SB) = fail .
+eq Substitute(SB, fail) = fail [owise] .
+
+---------------------------------------------------------
+--- apply substitution on Unificaiton Problem -----------
+---------------------------------------------------------
+
+op Substitute : UnificationProblem Substitution -> UnificationProblem .
+eq Substitute( T =? T1 /\ UnPr, SB) = ( Substitute(T , SB)  =? Substitute(T1 , SB)) /\ Substitute( UnPr , SB) .
+eq Substitute( T =? T1 , SB) = ( Substitute(T , SB)  =? Substitute(T1 , SB)) .
+eq Substitute( UnPr , none ) = UnPr .
+eq Substitute( EmptyEq , SB) = EmptyEq .
+
+---------------------------------------------------
+-----------SubstitutionList------------------------
+---------------------------------------------------
+	
+	sorts SubstitutionList NeSubstitutionList . ---Collection of all substitutions 	
+	subsort Substitution < SubstitutionList .
+	subsort Substitution < NeSubstitutionList .
+	subsort AssignmentList < SubstitutionList .
+	subsort AssignmentList < NeSubstitutionList .
+	subsort NeSubstitutionList < SubstitutionList .
+	vars SL SL1 SL2 : SubstitutionList .
+	vars NSL NSL1 NSL2 : NeSubstitutionList .
+	op _&&&&_ : SubstitutionList SubstitutionList -> SubstitutionList [ctor assoc id: EmptySubstitution gather (e E) format (i nt nt d) ] .
+	op _&&&&_ : NeSubstitutionList SubstitutionList -> NeSubstitutionList [ctor ditto] .
+	op _&&&&_ : SubstitutionList NeSubstitutionList -> NeSubstitutionList [ctor ditto] .
+	op _&&&&_ : Substitution Substitution -> NeSubstitutionList [ctor ditto] .
+	op EmptySubstitution : -> SubstitutionList . 
+	eq SB &&&& SB = SB .
+        eq none &&&& SB = SB .
+	eq (SB &&&& SL1 &&&& SB) = (SB &&&& SL1) . ---Idemponent
+	---eq SB ### fail = SB . ----not fail until all banches fail.
+	---eq fail ### SB = SB .
+	----( s++r s++b nt++r++nt s)
+	
+	
+---------------------------------------------------------
+-----------UnificationProblemList------------------------
+---------------------------------------------------------
+	
+	sorts NeUnificationProblemList UnificationProblemList .
+	subsort UnificationProblem < UnificationProblemList .
+	subsort NeUnificationProblemList < UnificationProblemList .
+	subsort UnificationProblem < NeUnificationProblemList .
+	vars UnPrL UnPrL1 UnPrL2 : UnificationProblemList .
+	vars NUnPrL NUnPrL1 NUnPrL2 : NeUnificationProblemList . 
+	op _$$_ : UnificationProblemList UnificationProblemList -> UnificationProblemList [ctor assoc comm prec 73] .
+	op _$$_ : NeUnificationProblemList UnificationProblemList -> NeUnificationProblemList [ctor ditto] .
+	op _$$_ : UnificationProblemList NeUnificationProblemList -> NeUnificationProblemList [ctor ditto] .
+	eq (FailEquation $$ NUnPrL) = NUnPrL .
+        eq NUnPrL $$ FailEquation = NUnPrL .
+	eq (UnPr $$ UnPrL1 $$ UnPr) = UnPr $$ UnPrL1 . ---idempotent.
+	eq (UnPrL $$ EmptyEq ) = UnPrL .
+	eq (EmptyEq $$ UnPrL) = UnPrL .
+	
+----------------------------------------
+--- Getting the substitutionList-------
+----------------------------------------
+
+
+	op gUnify : UnificationProblemList SubstitutionList UnificationProblemList Nat BoxAssignList Nat Nat -> SubstitutionList .
+	eq gUnify( UnPr $$ UnPrL , SL1 , UnPrL1 , N , BAL , N1 , N5 ) = gUnify( UnPr , SL1 , UnPrL1 , N , BAL , N1 , N5) &&&& gUnify( UnPrL , SL1 , UnPrL1 , N , BAL , N1 , N5 ) .
+	---if CheckVinUnPr( UnPr ) =/= false .
+	eq gUnify( UnPr , SL1 , UnPrL1 , N , BAL , N1 , N5 ) = gUnify( UnPr , SL1 , UnPrL1 , N , BAL , N1 , N5 ) [owise] .
+	eq gUnify( EmptyEq , SL1 , UnPrL1 , N , BAL , N1 , N5 ) = EmptySubstitution .
+	eq gUnify( FailEquation , SL1 , UnPrL1 , N , BAL , N1 , N5 ) = fail .
+	---eq gUnify ( UnPr, SL1 , N , BAL , N1 , N5 ) = SL1 .
+	op getUnPrL : UnificationProblemList SubstitutionList UnificationProblemList Nat BoxAssignList Nat Nat -> UnificationProblemList .
+	
+------------------------------------------------------
+----------UnificandPair, UnificaitonProblem ---------
+------------------------------------------------------
+
+	subsort UnificandPair < UnificationProblem .
+	op _=?_ : Term Term -> UnificandPair [ctor prec 71] .
+	op _/\_ : UnificationProblem UnificationProblem -> UnificationProblem [ctor assoc comm prec 73] .
+	op EmptyEq : -> UnificationProblem [ctor] .
+	op EmptyUnificandPair : -> UnificandPair .
+	op FailEquation : -> UnificationProblem .
+	eq EmptyEq /\ UnPr = UnPr . 
+	eq UnPr /\ EmptyEq = UnPr .
+	eq EmptyUnificandPair /\ UnPr = UnPr .
+	eq UnPr /\ EmptyUnificandPair = UnPr .
+    
+    ------------------------------------------------------
+----------LTermList
+--------------------------------------------------
+    sort LTermList .
+    subsort TermList < LTermList .
+	op _#_ : TermList TermList -> LTermList [ctor assoc comm prec 73] .
+	op emptytl : -> LTermList [ctor] .
+	eq empty # empty = emptytl . 
+	eq TL # TL = TL .
+	
+-----------------------------------------------------------------------
+-------idemponent--remove duplicates in UnificaitonProblem-------------
+-----------------------------------------------------------------------
+
+	eq UdPr /\ UdPr = UdPr .
+ 
+ 
+------------------------------------------------------------------------------------------------------
+----------Capture equations with '+'------------------------------------------------------------------
+
+op GetEqsPlus : UnificationProblem -> UnificationProblem .
+ceq GetEqsPlus( V =? T ) = ( V =? T ) if GetSymbol(T) = '_+_ .
+ceq GetEqsPlus(V =? T ) = EmptyEq if GetSymbol(T) =/= '_+_ . 
+eq GetEqsPlus( V =? T /\ UnPr ) =  GetEqsPlus(V =? T) /\ GetEqsPlus(UnPr) .
+
+------------------------------------------------------------------------------------------------------
+----------Capture equations of the form x= f(v)------------------------------------------------------------------
+
+op GetEqsVf : Variable Qid UnificationProblem -> UnificationProblem .
+ceq GetEqsVf ( V, QI1, V1 =? T ) = ( V1 =? T ) if GetSymbol(T) == QI1 /\ V == V1 .
+eq GetEqsVf (V, QI1, V1 =? T ) = EmptyEq [owise] . 
+eq GetEqsVf ( V, QI1, V1 =? T /\ UnPr ) =  GetEqsVf(V, QI1, V =? T) /\ GetEqsVf(V, QI1, UnPr) .
+
+------capture term lists x = f[TL] /\ x = f [TL1] then return TL , TL1.
+
+op GetEqsVfTL : TermList UnificationProblem -> UnificationProblem .
+eq GetEqsVfTL  (TL , ( V1 =? QI[TL1] ) ) = TL =? TL1 .
+eq GetEqsVfTL  (TL , ( V1 =? QI[TL1] /\ UnPr ) ) =  GetEqsVfTL( TL, V1 =? QI[TL1]) /\ GetEqsVfTL(TL, UnPr) .
+
+
+
+--------------------------------------------------------------------------------------------------
+----------------Capture other equations-----------------------------------------------------------
+
+op GetOtherEqs : Variable Qid UnificationProblem -> UnificationProblem .
+ceq GetOtherEqs( V1, QI1, V =? T ) = ( V =? T ) if (GetSymbol(T) =/= QI1) or V =/= V1 .
+eq GetOtherEqs( V1, QI1, V =? T ) = EmptyEq [owise] .
+eq GetOtherEqs( V1, QI1, V =? T /\ UnPr ) = GetOtherEqs(V1, QI1, V =? T) /\ GetOtherEqs(V1, QI1, UnPr) .
+
+ 
+------------------------------------------------------------
+--- Generating New Variables, starting with 'NV,'-----
+------------------------------------------------------------
+
+	op getType : Term -> Type .
+    eq getType( _+_(T , T1)) = getType(T) .
+	eq getType( QI1[T , TL] ) = getType(T) .
+	op GenNewVar(_ , _) : Type Int -> Variable .
+	eq GenNewVar(TY , N) = qid("NV" + string((N + 1), 10) + ":" + string(TY)) .
+	
+---------------------------------------------------------------------------------------
+------------Check if '#NV:Nat occurs --------------------------------
+---------------------------------------------------------------------------------------
+
+--- check if '#NV' occurs in a term
+
+op CheckVinUnPr : Term -> Bool .
+eq CheckVinUnPr(C) = false .
+eq CheckVinUnPr(empty) = false .
+ceq CheckVinUnPr(V ) = true if find( string(V) , "#" , 0) =/= notFound .
+ceq CheckVinUnPr(V) = false if find( string(V) , "#" , 0) == notFound  .
+eq CheckVinUnPr(QI1[ TL]) =  CheckVinUnPr (TL) .
+
+--- check if '#NV' occurs in a term list
+
+op CheckVinUnPr : TermList -> Bool .
+eq CheckVinUnPr((T , TL )) = CheckVinUnPr(T) or CheckVinUnPr(TL) .
+
+--- check if '#NV' occurs in a unificand pair
+
+op  CheckVinUnPr : UnificandPair -> Bool .
+eq CheckVinUnPr( T =? T1) = CheckVinUnPr(T) or CheckVinUnPr(T1) .
+eq CheckVinUnPr(EmptyUnificandPair) = false .
+
+--- check if '#NV' occurs in a unification problem
+
+op CheckVinUnPr : UnificationProblem -> Bool .
+eq CheckVinUnPr( T =? T1 /\ UnPr ) = CheckVinUnPr(T =? T1) or CheckVinUnPr(UnPr) .
+eq CheckVinUnPr(EmptyEq) = false .
+
+--- check if '#NV' occurs in a unification problem list
+
+op CheckVinUnPr : UnificationProblemList -> Bool .
+eq CheckVinUnPr(UnPr $$ UnPrL) = CheckVinUnPr(UnPr) or CheckVinUnPr(UnPrL) .
+
+
+------------------------------------------------------------------
+--- BAL: Auxiliary data structure to store the status of the Term
+--- i.e. if a term is boxed
+------------------------------------------------------------------
+
+	sorts BoxAssign BoxAssignList .
+	subsort BoxAssign < BoxAssignList .
+	op EmptyBal : -> BoxAssignList .
+	op (_ , _) : Term Bool -> BoxAssign . 
+	op  _\/_ : BoxAssignList BoxAssignList -> BoxAssignList [ctor assoc comm prec 73 ] .
+	eq EmptyBal \/ EmptyBal = EmptyBal .
+	eq EmptyBal \/ BAL = BAL .
+	eq BAL \/ EmptyBal = BAL .
+    
+--- check status of a term
+
+	op IsBoxed : Term BoxAssignList -> Bool .
+	ceq IsBoxed  (T, (T1, B)) = B if T == T1 .
+    eq IsBoxed  (T, (T1, B)) = false [owise] .
+    ceq IsBoxed  (T, (T1, B) \/ BAL) = B if T == T1 .
+    eq IsBoxed  (T, (T1, B) \/ BAL ) = IsBoxed ( T , BAL) [owise] .
+    
+--- Flip box status of a term
+
+    op FlipBoxed : Term BoxAssignList -> BoxAssignList .
+	ceq FlipBoxed  (T, (T1, B)) = (T1, (not B)) if T == T1 .
+    eq FlipBoxed  (T, (T1, B)) =  (T1, B) [owise] .
+    ceq FlipBoxed  (T, (T1, B) \/ BAL) = (T1, (not B)) \/ BAL if T == T1 .
+    eq FlipBoxed  (T, (T1, B) \/ BAL ) = (T1, B) \/ FlipBoxed (T, BAL) [owise] . 
+
+******Remove the duplicates in BAL list*************************************************************
+****************************************************************************************************
+
+eq VA \/ VA = VA .
+eq (T , B) \/ ( T , B1) = ( T , (B or B1) ) .
+
+
+----Term --------------
+-----------------------
+
+op InitializeBAL : Term -> BoxAssignList .
+eq InitializeBAL(T) = ( T , false) .
+
+-------TermList -------
+-----------------------
+
+op InitializeBAL : TermList -> BoxAssignList .
+eq InitializeBAL((T , TL )) = InitializeBAL(T) \/ InitializeBAL(TL) .
+eq InitializeBAL(empty) = EmptyBal .
+
+----- UnificandPair ---
+-----------------------
+
+op InitializeBAL : UnificandPair -> BoxAssignList .
+eq InitializeBAL( T =? T1) = InitializeBAL(T) \/ InitializeBAL(T1) .
+eq InitializeBAL(EmptyUnificandPair) = EmptyBal .
+
+---UnificaitonProblem--
+-----------------------
+
+op InitializeBAL : UnificationProblem -> BoxAssignList .
+eq InitializeBAL(UdPr /\ UnPr ) = InitializeBAL(UdPr) \/ InitializeBAL(UnPr) .
+eq InitializeBAL(EmptyEq) = EmptyBal .
+
+----UnificationProblemList---
+-----------------------------
+
+op InitializeBAL : UnificationProblemList -> BoxAssignList .
+eq InitializeBAL(UnPr $$ UnPrL) = InitializeBAL(UnPr) \/ InitializeBAL(UnPrL) .
+
+------------------------------------------------------------------
+-------Add a Term to BAL if its not appeared already--------
+------------------------------------------------------------------
+---Checking to see if already appeared
+---------------------------------------------------------
+--- Term 
+
+op CheckTinBAL : Term BoxAssignList -> Bool .
+ceq CheckTinBAL ( T , (T1 , B) ) = true if T == T1 .
+eq CheckTinBAL ( T , BAL ) = false [owise] .
+eq CheckTinBAL ( T , EmptyBal ) = true .
+eq CheckTinBAL (T , (T1, B) \/ BAL1) = CheckTinBAL(T , (T1, B)) or CheckTinBAL(T , BAL1).
+
+--- TermList
+
+op CheckTLinBAL : TermList BoxAssignList -> Bool .
+eq CheckTLinBAL (empty , BAL) = true .
+eq CheckTLinBAL (TL , EmptyBal) = false .
+eq CheckTLinBAL ((T , TL ) , BAL) = CheckTinBAL (T , BAL) and CheckTinBAL ( TL, BAL) .
+
+--- UnificandPair
+
+op CheckUdPrinBAL : UnificandPair BoxAssignList -> Bool .
+eq CheckUdPrinBAL (EmptyUnificandPair , BAL) = true  .
+eq CheckUdPrinBAL(T =? T1 , EmptyBal) = false .
+eq CheckUdPrinBAL (( T =? T1) , BAL) = CheckTinBAL (T , BAL) and CheckTinBAL (T1 , BAL) .
+
+--- UnificaitonProblem
+
+op CheckUPinBAL : UnificationProblem BoxAssignList -> Bool .
+eq CheckUPinBAL (EmptyEq , BAL) = true .
+eq CheckUPinBAL(UnPr, EmptyBal) = false .
+eq CheckUPinBAL ( T =? T1  , BAL ) = CheckUdPrinBAL (T =? T1 , BAL) .
+eq CheckUPinBAL ( T =? T1 /\ UnPr , BAL ) = CheckUdPrinBAL (T =? T1 , BAL) and CheckUPinBAL (UnPr ,  BAL) .
+
+----UnificationProblemList---
+
+----op CheckTinBAL : UnificationProblemList BoxAssignList -> Bool .
+----eq CheckTinBAL ( FailEquation ,  BAL) = true .
+----eq CheckTinBAL (UnPrL , EmptyBal) = false .
+----eq CheckTinBAL (UnPr $$ UnPrL ,  BAL) = CheckTinBAL (UnPr , BAL) or CheckTinBAL (UnPrL , BAL)  .
+
+*******************************************************************************
+*******************************************************************************
+****Term **************
+***********************
+
+op addTBAL : Term BoxAssignList -> BoxAssignList .
+eq addTBAL(T , EmptyBal) = (T , false) .
+ceq addTBAL( T , BAL)  = ( T , false) \/ BAL if CheckTinBAL( T , BAL) == false .
+eq addTBAL(T , BAL) = BAL .
+
+
+*******TermList *******
+***********************
+
+op addTLBAL : TermList BoxAssignList -> BoxAssignList .
+eq addTLBAL (empty , EmptyBal) = EmptyBal .
+eq addTLBAL (empty , BAL) = BAL .
+eq addTLBAL ((T , TL ) , BAL) =  addTLBAL( TL, addTBAL(T , BAL)) .
+
+***** UnificandPair ***
+***********************
+
+op addUdPrBAL : UnificandPair BoxAssignList -> BoxAssignList .
+eq addUdPrBAL (EmptyUnificandPair , EmptyBal) = EmptyBal  .
+eq addUdPrBAL (EmptyUnificandPair , BAL) = BAL  .
+eq addUdPrBAL (( T =? T1) , BAL) = addTBAL (T1 ,  addTBAL (T , BAL))  .
+
+***UnificaitonProblem**
+***********************
+
+op addUPBAL : UnificationProblem BoxAssignList -> BoxAssignList .
+eq addUPBAL (EmptyEq , EmptyBal) = EmptyBal .
+eq addUPBAL (EmptyEq , BAL) = BAL .
+eq addUPBAL ( T =? T1  , BAL ) = addUdPrBAL(T =? T1 , BAL) .
+eq addUPBAL ( T =? T1 /\ UnPr , BAL ) = addUPBAL(UnPr , addUdPrBAL(T =? T1 , BAL)) .
+
+-------------------------------------------------------------------------------------------
+--- End VAR List
+-------------------------------------------------------------------------------------------
+
+----------------------------------------------------
+------ Get the number of terms in  Termlist --------
+----------------------------------------------------
+
+	op getNumber : TermList -> Int .
+	eq getNumber((T, TL)) = (getNumber(TL) + 1) .
+    eq getNumber(T) = 1 .
+    eq getNumber(empty) = 0 .
+
+
+
+---------------------------Update variable counter-----------------------------
+-------------------------------------------------------------------------------
+op NewVarctr : Term Nat -> Nat .
+eq NewVarctr (C , N) = N .
+ceq NewVarctr(V , N) = N + 1 if find( string(V) , "#" , 0) =/= notFound  .
+ceq NewVarctr(V , N) = N if find( string(V) , "#" , 0) == notFound  .
+eq NewVarctr (QI1[TL] , N) = NewVarctr (TL , N) .
+ 
+-------TermList ----------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+op NewVarctr : TermList Nat -> Nat .
+eq NewVarctr ((T , TL ) , N) =  NewVarctr(TL , NewVarctr(T , N)) .
+eq NewVarctr(empty , N) = N .
+
+----- UnificandPair --------------------------------------------------------
+----------------------------------------------------------------------------
+
+op NewVarctr : UnificandPair Nat -> Nat .
+eq NewVarctr (( T =? T1) , N ) =   NewVarctr (T1 , NewVarctr (T , N))  .
+eq NewVarctr (EmptyUnificandPair , N) = N .
+
+---UnificaitonProblem--
+-----------------------
+
+op NewVarctr : UnificationProblem Nat -> Nat .
+eq NewVarctr (EmptyEq , N ) = N .
+eq NewVarctr ( T =? T1 /\ UnPr , N ) =   NewVarctr(UnPr , (NewVarctr(T1 , NewVarctr(T , N))) ) .
+
+----UnificationProblemList---
+-----------------------------
+
+op NewVarctr : UnificationProblemList Nat -> Nat .
+eq NewVarctr (UnPr $$ UnPrL ,  N) =  NewVarctr(UnPrL , NewVarctr(UnPr , N))  .
+
+-------------------replace variable name --------------------------------------
+----------------Term ----------------------------------------------------------
+-------------------------------------------------------------------------------
+
+op repvar : Term Nat -> Term .
+ceq repvar(V , N) = repvar( qid("RV" +  substr(string(getName(V)) , 1 , 1) + ":" + string(getType(V)) ) , N + 1 ) if find( string(V) , "#" , 0) =/= notFound  .
+ceq repvar(V , N ) = V if find( string(V) , "#" , 0) == notFound  .
+eq repvar(C , N) = C .
+eq repvar(QI1[TL] , N) = QI1[repvar(TL , N)] .
+ 
+-------TermList ----------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+op repvar : TermList Nat -> TermList .
+eq repvar ((T , TL ) , N) =  (repvar(T , N ) , repvar(TL , NewVarctr(T , N))) .
+eq repvar (empty , N) = empty .
+
+----- UnificandPair --------------------------------------------------------
+----------------------------------------------------------------------------
+
+op repvar : UnificandPair  Nat -> UnificandPair .
+eq repvar ( T =? T1 , N )  = (repvar (T , N) =?  repvar (T1 , NewVarctr(T , N) ))  .
+eq repvar (EmptyUnificandPair , N ) = EmptyUnificandPair  .
+
+---UnificaitonProblem--
+-----------------------
+
+op repvar : UnificationProblem  Nat -> UnificationProblem .
+eq repvar (EmptyEq , N ) = EmptyEq .
+eq repvar ( T =? T1 /\ UnPr , N ) = repvar(T =? T1 , N ) /\  repvar(UnPr , NewVarctr(T =? T1 , N) ) .
+
+
+----UnificationProblemList---
+-----------------------------
+
+---op repvar : UnificationProblemList -> UnificationProblemList .
+---eq repvar (UnPr $$ UnPrL ) = repvar(UnPr) $$ repvar(UnPrL)  .
+
+--- Count the number of terms in TermList
+
+op size : TermList -> Nat .
+eq size ( empty ) = 0 .
+eq size ( ( T, TL) ) = size (TL) + 1 .
+
+
+
+
+-------------------------------------------------------------
+---- Inference Rules ----------------------------------------
+-------------------------------------------------------------
+
+
+--- check if the varible occur in a term
+
+	op Occurs : Variable Term -> Bool .
+	eq Occurs(V, C) = false .
+	ceq Occurs(V, V1 ) = false if(getName(V) =/= getName(V1)) .
+	ceq Occurs(V, V1) = true if(getName(V) == getName(V1)) .
+	eq Occurs(V, QI1[TL]) = Occurs(V, TL ) .
+	eq Occurs(V, 'P[T , T1]) = Occurs(V, T) or Occurs(V, T1) .
+    
+--- check if the variable occur in a term
+
+	op Occurs : Variable TermList -> Bool .
+	eq Occurs(V, (T,TL)) = (Occurs(V, T) or Occurs(V, TL )).
+	eq Occurs(V, empty ) = false .
+
+--- check if the variable occur in a term
+    
+    op Occurs : Variable UnificandPair -> Bool .
+    eq Occurs(V, (T =? T1) ) = ( Occurs(V , T ) or Occurs(V , T1)) .
+    eq Occurs(V, EmptyUnificandPair) = false .
+
+--- check if the variable occur in UnificaitonProblem
+
+	op Occurs : Variable UnificationProblem -> Bool .
+	eq Occurs(V, (UnPr /\ UnPr1)) = (Occurs(V, UnPr ) or Occurs(V, UnPr1 )) .
+    eq Occurs(V, EmptyEq) = false . 
+    
+------------------------------------------------------------     
+-----2. Decompose-------------------------------------------
+------------------------------------------------------------
+
+op Decompose : TermList TermList -> UnificationProblem [ctor comm ] .
+eq Decompose( T , T1 ) = (T =? T1) .
+eq Decompose( T , T ) = EmptyEq .
+eq Decompose( empty , empty) = EmptyEq .
+eq Decompose( ( T , TL) , (T1 ,TL1) ) = ( T =? T1) /\ Decompose(TL , TL1) .
+
+
+
+---op Decomposen : TermList LTermList -> UnificationProblem .
+---op Decomposen ( TL , (TL1 # TL2)) = Decompose (TL, TL1) /\ Decompose (TL, TL2) .
+---op Decomposen ( TL , TL1  ) = Decompose (TL, TL1) .
+
+----------------------------------
+--- bsmUnify operator -----------
+----------------------------------
+
+op bsmUnify : UnificationProblemList RewSystem BoxAssignList Nat Substitution  -> Substitution .
+---------------------------------------------------------
+----Generate NewVar TermList of size N------------------
+------------------------------------------------------------
+
+op GenNewVarN : Nat Type Nat -> TermList .
+eq GenNewVarN ( 0, ty, N ) = empty .
+eq GenNewVarN ( 1, ty, N ) = ( GenNewVar( ty, N ) ) .
+eq GenNewVarN ( (s N1), ty, N ) = ( GenNewVar( ty, N), (GenNewVarN ( N1 , ty , (N + 1) ) ) ) .
+
+-----------------------------------------------------------
+--- Helper function for Imit rule
+-----------------------------------------------------------
+
+op RecDecomp : UnificationProblem TermList -> UnificationProblem .
+ceq RecDecomp ( ( V =? QI1 [TL] /\ UnPr ) , TL1 ) = Decompose (TL1, TL) /\ RecDecomp (UnPr, TL1) if size (TL) == size (TL1) .
+ceq RecDecomp (  V =? QI1 [TL]  , TL1 ) = Decompose (TL1, TL) if size (TL) == size (TL1) .
+
+---op RecDecomp1 : UnificationProblem LTermList -> UnificationProblem .
+---op RecDecomp1  UnPr (TL /\ LTL) = UnPr .
+
+--- retrieve size of vi from the set of equations x = f(vi)
+
+op RetSize : UnificationProblem -> Nat .
+eq RetSize ( V =? QI1 [TL] /\ UnPr ) =  size (TL ) .
+eq RetSize ( V =? QI1 [TL] ) =  size (TL ) .
+--- retrieve the x from x = f(vi)
+
+op RetVar : UnificationProblem -> Variable .
+eq RetVar ( V =? QI1 [TL] /\ UnPr ) =  V .
+eq RetVar ( V =? QI1 [TL] ) =  V .
+
+--- retrieve the f (Qid) from x = f(vi)
+
+op RetQid : UnificationProblem -> Qid .
+eq RetQid ( V =? QI1 [TL] /\ UnPr ) =  QI1 .
+eq RetQid ( V =? QI1 [TL] ) =  QI1 .
+
+------------------------------------------
+--- 0. Update Box assigned list
+------------------------------------------
+ceq bsmUnify ( UnPr, RW, BAL, N, SB ) = bsmUnify (UnPr, RW, addUPBAL (UnPr, BAL), N, SB ) if CheckUPinBAL (UnPr , BAL) == false .
+
+--------------------------------------------------------
+---10. Symbol Clash
+-------------------------------------------------------
+eq bsmUnify(  V =? C /\ V =? QI1[TL1] /\ UnPr, RW, BAL, N, SB ) = fail .
+eq bsmUnify(  V =? C /\ V =? QI1[TL1] , RW, BAL, N, SB ) = fail .
+
+
+------------------------------------------
+ --- 1. occurcheck
+ ------------------------------------------
+ceq bsmUnify ( V =? T /\ UnPr, RW, BAL, N, SB ) = fail if Occurs (V , T) == true .
+ceq bsmUnify ( V =? T , RW, BAL, N, SB ) = fail if Occurs (V , T) == true .
+
+
+
+
+------------------------------------------------------------
+-----3. Trivial --------------------------------------------
+------------------------------------------------------------
+
+eq bsmUnify ( T =? T /\ UnPr, RW, BAL, N, SB ) = bsmUnify ( UnPr, RW, BAL, N, SB ) .
+eq bsmUnify ( T =? T , RW, BAL, N, SB ) =  SB .
+
+------------------------------------------------------------
+-----4. Orient --------------------------------------------
+------------------------------------------------------------
+
+ceq bsmUnify ( T =? V /\ UnPr, RW, BAL, N, SB ) = bsmUnify ( V =? T /\ UnPr, RW, BAL, N, SB )  if IsVar(T) == false .
+
+ceq bsmUnify ( T =? V , RW, BAL, N, SB ) = bsmUnify ( V =? T, RW, BAL, N, SB )  if IsVar(T) == false .
+
+------------------------------------------------------------
+----7. MutConflict ----------------------------------
+------------------------------------------------------------
+
+
+eq bsmUnify( V =? QI[TL] /\ UnPr, RW, BAL, N, SB) = bsmUnify ( V =?  aplyRewrule (QI[TL], RW) /\ (aplyrlRetTL (QI[TL], RW) =? TL ) /\ UnPr, RW, (aplyRewrule (QI[TL], RW), true) \/ (aplyrlRetTL (QI[TL], RW), true) \/ BAL, N, SB ) .
+
+eq bsmUnify( V =? QI[TL], RW, BAL, N, SB) = bsmUnify ( V =?  aplyRewrule (QI[TL], RW) /\ (aplyrlRetTL (QI[TL], RW) =? TL ), RW, (aplyRewrule (QI[TL], RW), true) \/ (aplyrlRetTL (QI[TL], RW), true) \/ BAL, N, SB ) .
+
+
+-------------------------------------------------------------
+--- 4. Coalesce 
+-------------------------------------------------------------
+
+ceq bsmUnify ( V =? V1 /\ UnPr, RW, BAL, N, SB) = bsmUnify (Substitute( UnPr, V <- V1), RW, BAL, N, V <- V1 ; SB) if Occurs( V, UnPr) == true /\ Occurs (V1, UnPr) == true .
+
+
+
+------------------------------------------------------------
+----5. Split -----------------------------------------------
+------------------------------------------------------------
+
+ceq bsmUnify( QI1[TL]  =? T /\ UnPr, RW, BAL, N, SB) = bsmUnify ( GenNewVar(getType(T), N ) =?  QI1[TL] /\ GenNewVar( getType (T) , N) =? T /\ UnPr, RW, BAL, N + 1, SB ) if IsVar(T) == false .
+
+ceq bsmUnify( QI1[TL]  =? T, RW, BAL, N, SB) = bsmUnify ( GenNewVar(getType(T), N ) =?  QI1[TL] /\ GenNewVar( getType (T) , N) =? T , RW, BAL, N + 1, SB ) if IsVar(T) == false .
+
+
+------------------------------------------------------------
+----6. Imit -----------------------------------------------
+------------------------------------------------------------
+
+eq bsmUnify( UnPr, RW, BAL, N, SB) =  bsmUnify (  RetVar(UnPr) =? RetQid (UnPr) [ GenNewVarN ( RetSize ( GetEqsVf( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N ) ] /\
+GetEqsVfTL ( ( GenNewVarN ( RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N ) ), GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr )  ) /\ GetOtherEqs ( RetVar(UnPr), RetQid(UnPr), UnPr), RW , ( (RetQid (UnPr) [ GenNewVarN ( RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N ) ], true) \/ BAL), size (GenNewVarN ( RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N )), SB ) .
+
+
+
+
+
+
+------------------------------------------------------------
+----8. ImitCycle -----------------------------------------------
+------------------------------------------------------------
+
+eq bsmUnify(V =? QI1[TL]  /\ UnPr, RW, BAL, N, SB) =  bsmUnify (  V =? QI1 [ GenNewVarN ( size (TL) , getType(V), N ) ] /\ ( GenNewVarN ( size (TL) , getType(V), N ) ) =? TL /\ UnPr, RW, (QI1 [ GenNewVarN ( size (TL) , getType(V), N ) ] , true ) \/ BAL, ( N + size (TL) )
+, SB ) .
+
+eq bsmUnify(V =? QI1[TL] , RW, BAL, N, SB) =  bsmUnify (  V =? QI1 [ GenNewVarN ( size (TL) , getType(V), N ) ] /\ ( GenNewVarN ( size (TL) , getType(V), N ) ) =? TL , RW, (QI1 [ GenNewVarN ( size (TL) , getType(V), N ) ] , true ) \/ BAL, ( N + size (TL) )
+, SB ) .
+
+
+------------------------------------------------------------     
+-----2. Decompose-------------------------------------------
+------------------------------------------------------------
+ceq bsmUnify(  V =? QI1[TL] /\ V =? QI1[TL1] /\ UnPr, RW, BAL, N, SB ) = fail if getNumber((TL)) =/= getNumber((TL1)) .
+eq bsmUnify(  V =? QI1[TL] /\ V =? QI1[TL1] /\ UnPr, RW, BAL, N, SB ) = bsmUnify(Decompose (TL, TL1) /\ UnPr, RW, BAL, N, SB) .
+
+ceq bsmUnify(  V =? QI1[TL] /\ V =? QI1[TL1] , RW, BAL, N, SB ) = fail if getNumber((TL)) =/= getNumber((TL1)) .
+
+
+eq bsmUnify(  V =? QI1[TL] /\ V =? QI1[TL1] , RW, BAL, N, SB ) = bsmUnify(Decompose (TL, TL1), RW, BAL, N, SB) .
+
+
+
+--------------------------------------------------------
+---9. Variable Elimination
+--------------------------------------------------------
+
+eq bsmUnify ( V =? T /\ UnPr, RW, BAL, N, SB) = bsmUnify (Substitute( UnPr, V <- T), RW, BAL, N, V <- T ; SB) .
+
+eq bsmUnify ( V =? T , RW, BAL, N, SB) = V <- T ; SB .
+
+
+---------------------------------------------------------------
+--------------Testing------------------------------------------
+---------------------------------------------------------------
+***red in myBSMp : bsmUnify ( p , emptyrs, EmptyBal, 0, none ).
+****p--UnificaitonProblemList
+
+ops p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 : -> UnificationProblemList .
+ops R R1 R2 R3 : -> RewSystem .
+
+eq p0 = 'f['x:Nat , 'y:Nat]  =? 'y:Nat .
+eq p1 = 'f['x:Nat , 'y:Nat]  =? 'z:Nat .
+eq p2 = 'f['x:Nat , 'y:Nat]  =? 'f['x:Nat , 'y:Nat] .
+eq p3 = 'y:Nat =? 'f['x:Nat , 'y:Nat] /\ 'y:Nat =? 'f['s:Nat , 't:Nat] .
+eq p4 = 'y:Nat =? 'f['x:Nat , 'y:Nat] /\ 'y:Nat =? 'f['s:Nat , 't:Nat] /\ 'r:Nat =? 'e:Nat .
+eq p5 = 'y:Nat =? 'f['x:Nat , 'y:Nat] .
+eq p6 = 'f['x:Nat , 'y:Nat] =? 'f['s:Nat , 't:Nat] .
+
+--------------------------------
+---Example 4 from the paper-----
+--------------------------------
+
+op f1 : Term -> Term .
+op g : Term -> Term .
+op m : Term Term -> Term .
+
+eq R1 = ( 'f1['v:Nat] -> '#1:Nat )  .
+eq R2 = ( 'f1['v:Nat] -> 'm['v:Nat, '#1:Nat ] )  .
+eq R3 = ( 'g['v:Nat] -> 'm['v:Nat, '#1:Nat ] ) .
+
+eq p7 = ('x:Nat =? 'f1['y:Nat] /\ 'x:Nat =? 'm ['z:Nat , 'y:Nat] ) .
+
+eq p8 = 'x:Nat =? '#1:Nat  /\ 'x:Nat =? 'm['z:Nat,'y:Nat] .
+
+endfm
