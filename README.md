@@ -3,7 +3,7 @@
 
 The Basic Syntactic Mutation (BSM) procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
-For more details about the BSM procedure, also know as BSM' in the paper, the reader is directed to the extended version of the [paper](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf)
+For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the [extended version of the paper](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
 
 
 ### Prerequisites ###
@@ -14,7 +14,7 @@ Download and install Maude from here [Download Maude](http://maude.cs.illinois.e
 
 ### Instructions to run the program ###
 
-Download .maude files to a directory. Run the maude on your machine and navigate to directory where the files reside in. 
+Download .maude file(s) to a directory. Then navigate to the directory and run the following commands.
 
 1. #### Load the file using the following command ####
 
