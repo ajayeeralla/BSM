@@ -12,8 +12,7 @@ If you wish to build the source yourself you will also need:
 
 ### Building and running
 
-### Basic Syntactic Mutation 
-
+## Basic Syntactic Mutation 
 
 The Basic Syntactic Mutation (BSM) procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
