@@ -18,11 +18,11 @@ Download .maude file(s) to a directory. Then navigate to the directory and run t
 
 1. #### Load the file using the following command 
 
- ` > load filename.maude . `
+ ``` > load filename.maude . ```
 
 2. #### Testing 
 
- `> red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) .`
+ ```> red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) .```
  
  where `UnPr` is an unification problem to solve, `RWS` is a rewrite system, `BAL` is a data structure that keeps tracking the box-status of the terms (`Empty` at the begining), `N` is a new-variable-counter (`0` initially), and `SUB` is the substitution or solution. Of course, `SUB` is `none` initially.
 
