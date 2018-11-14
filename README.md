@@ -3,7 +3,8 @@
 
 The Basic Syntactic Mutation (BSM) procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
-For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the [extended version of the paper](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
+For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the paper below:
+* Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Unification in Non-Disjoint Combinations with Forward-Closed Theories (extended verison)](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
 
 
 ## Prerequisites 
