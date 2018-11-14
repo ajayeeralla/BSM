@@ -10,7 +10,7 @@ For description of the BSM procedure, also know as BSM' in the paper, the reader
 To run the algorithm you will need to have installed Maude. 
 
 ### Install ###
-Download and install Maude from here [Download Maude](http://maude.cs.illinois.edu/w/index.php?title=The_Maude_System).
+Download and install Maude from [here](http://maude.cs.illinois.edu/w/index.php?title=The_Maude_System).
 
 ### Instructions to run the program ###
 
