@@ -1,3 +1,17 @@
+## Running the proofs
+
+### Dependencies
+
+- [SAW](https://saw.galois.com): Tested with version af22aa1, newer versions should also work. Easiest installation from the [nightlies](https://saw.galois.com/builds/nightly/). Saw depends on finding the following on the path:
+    - [Z3](https://github.com/Z3Prover/z3) 
+    - [Yices](http://yices.csl.sri.com/)
+
+If you wish to build the source yourself you will also need:
+- [LLVM](http://releases.llvm.org/download.html): We have tested versions 3.8 3.9 and 4.0. ```clang``` and ```llvm-link``` must have matching versions and be on the path.
+- [wllvm](https://github.com/travitch/whole-program-llvm): Install via pip, will need the environment variable ```LLVM_COMPILER=clang```
+
+### Building and running
+
 ### Basic Syntactic Mutation 
 
 
