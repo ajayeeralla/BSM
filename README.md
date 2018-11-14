@@ -1,5 +1,3 @@
-## Running the proofs
-
 
 ## Basic Syntactic Mutation 
 
