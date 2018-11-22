@@ -33,11 +33,12 @@ Download .maude file(s) to a directory. Then navigate to the directory and run t
  
  where `UnPr` is an unification problem, `RWS` is a rewrite system, `BAL` is a data structure that keeps tracking the box-status of the terms (`Empty` at the begining), `N` is a new-variable-counter (`0` initially), and `SUB` is the substitution or solution. Of course, `SUB` is `none` at the begining.
 
-## Tested Results 
+<!---## Tested Results --->
 
 Unification Problem | Rewrite System | Solution | Real Time (ms)
 ------------ | ------------- | ------------- | ------------- 
-`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail` | `0`
+`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail` | `0` 
+
 
 ## Authors
 
