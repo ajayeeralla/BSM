@@ -1,7 +1,9 @@
 
-## Basic Syntactic Mutation 
+## Basic Syntactic Mutation (BSM)
 
-The Basic Syntactic Mutation (BSM) procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
+Basic syntactic mutation prime is a new mutation based unification algorithm
+for theories defined by rewrite systems which are both convergent and
+forward-closed. The algorithm is well suited for combination. The BSM procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
 For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the paper below:
 * Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Unification in Non-Disjoint Combinations with Forward-Closed Theories (extended verison)](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
@@ -29,7 +31,7 @@ Download .maude file(s) to a directory. Then navigate to the directory and run t
  > red in myBSMp : bsmUnify ( UnPr , RWS, BAL, N, SUB ) 
  ```
  
- where `UnPr` is an unification problem to solve, `RWS` is a rewrite system, `BAL` is a data structure that keeps tracking the box-status of the terms (`Empty` at the begining), `N` is a new-variable-counter (`0` initially), and `SUB` is the substitution or solution. Of course, `SUB` is `none` initially.
+ where `UnPr` is an unification problem, `RWS` is a rewrite system, `BAL` is a data structure that keeps tracking the box-status of the terms (`Empty` at the begining), `N` is a new-variable-counter (`0` initially), and `SUB` is the substitution or solution. Of course, `SUB` is `none` at the begining.
 
 ## Tested Results 
 
