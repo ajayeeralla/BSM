@@ -35,9 +35,9 @@ Download .maude file(s) to a directory. Then navigate to the directory and run t
 
 <!---## Tested Results --->
 
-Unification Problem | Rewrite System | Solution | Real Time (ms)
+<!---Unification Problem | Rewrite System | Solution | Real Time (ms)
 ------------ | ------------- | ------------- | ------------- 
-`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail` | `0` 
+`'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail` | `0` --->
 
 
 ## Authors
