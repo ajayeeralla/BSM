@@ -5,7 +5,7 @@ Basic syntactic mutation prime is a new mutation based unification algorithm
 for theories defined by rewrite systems which are both convergent and
 forward-closed. The algorithm is well suited for combination. The BSM procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
-For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the paper below:
+For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the paper below.
 * Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Unification in Non-Disjoint Combinations with Forward-Closed Theories (extended verison)](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
 
 
