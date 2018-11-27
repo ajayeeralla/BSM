@@ -40,10 +40,9 @@ Download .maude file(s) to a directory. Then navigate to the directory and run t
 `'f['x:Nat , 'y:Nat]  =? 'y:Nat`| `emptyrs` | `fail` | `0` --->
 
 
-## Authors
-
+<!---## Authors
 * Ajay Kumar Eeralla, University of Missouri-Columbia (USA)
 * Serdar Erbatur, Ludwig-Maximilians-Universita ̈t Mu ̈nchen (Germany)
 * Andrew M. Marshall, University of Mary Washington (USA)
-* Christophe Ringeissen, Universit ́e de Lorraine, CNRS, Inria, LORIA (France)
+* Christophe Ringeissen, Universit ́e de Lorraine, CNRS, Inria, LORIA (France)--->
 
