@@ -1,14 +1,15 @@
 
 ## Basic Syntactic Mutation
 
-Basic Syntactic Mutation (BSM) is a mutation based unification algorithm for the theories that are saturated by paramodulation. The algorithm has been introduced by Christopher Lynch *et al.* in "[Basic Syntactic Mutation]"(http://people.clarkson.edu/~clynch/PAPERS/bsm.ps).
+Basic Syntactic Mutation (BSM) is a mutation based unification algorithm for the theories that are saturated by paramodulation. The algorithm has been introduced by Christopher Lynch *et al.* in the paper [Basic Syntactic Mutation](http://people.clarkson.edu/~clynch/PAPERS/bsm.ps).
 
-In order to solve an unification problem in the theories that are both convergent and forward closed, we propose a new and simplified mutation based unification algorithm which we call it as **BSM'**.
-The BSM' procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. 
+Inspired by the above work, we propose a new and simplified mutation-based unification algorithm for solving a unification problem modulo the theories that are both convergent and forward closed.
+We call the algorithm as **BSM'**.
+The BSM' procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. The inference procedure prioritize the rules as follows: *Coalesce*, *Split*, and then applies the rules *Imit*, *MuConflict*, and *ImitCycle* in a non-deterministic way.
 We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
 For more details about the BSM' procedure, please see the following paper.
-* Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Unification in Non-Disjoint Combinations with Forward-Closed Theories (extended verison)](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
+* Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Unification in Non-Disjoint Combinations with Forward-Closed Theories (extended version)](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
 
 
 ## Prerequisites 
