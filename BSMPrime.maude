@@ -29,7 +29,7 @@ vars V V1 V2 V3 V4 V5 V6 : Variable .
 vars T T1 T2 T3 T4 T5 T6 : Term .
 vars RL RL1 RL2 : RewRule .
 var RW RW1 RW2 : RewSystem .
-var C  C1 : Constant .
+var C C1 : Constant .
 vars VA VA1 VA2 VA3 : BoxAssign .
 vars BAL BAL1 BAL2 BAL3 : BoxAssignList .
 vars SB SB1 SB2 SB3 SB4 SB5 SB6 : Substitution .
@@ -94,13 +94,15 @@ op f : Term Term -> Term .
 ------------------------------------------------
 --- IsConst to Check if a Term is a constant----
 ------------------------------------------------
+
 	op IsConst : Term -> Bool .
     eq IsConst('#1:Nat) = true .
     eq IsConst(T) = false [owise] .
                
------------------------------------------------------------
+------------------------------------------------------------
 -----------Get Function symbol------------------------------
 ------------------------------------------------------------
+
 op GetSymbol : Term -> Qid .
 eq GetSymbol (QI1[ T , T1] ) = QI1 .
 eq GetSymbol (QI1[ T , TL] ) = QI1 .
@@ -345,6 +347,13 @@ eq CheckVinUnPr(UnPr $$ UnPrL) = CheckVinUnPr(UnPr) or CheckVinUnPr(UnPrL) .
     eq IsBoxed  (T, (T1, B)) = false [owise] .
     ceq IsBoxed  (T, (T1, B) \/ BAL) = B if T == T1 .
     eq IsBoxed  (T, (T1, B) \/ BAL ) = IsBoxed ( T , BAL) [owise] .
+    
+--- check if all the terms are boxed
+
+    op IsBoxedBAL : BoxAssignList -> Bool .
+    eq IsBoxedBAL  (EmptyBal) = true .
+    eq IsBoxedBAL  ( (T, B) \/ BAL ) = ( B and IsBoxedBAL (BAL) ) .
+
     
 --- Flip box status of a term
 
@@ -612,8 +621,8 @@ eq Decompose( ( T , TL) , (T1 ,TL1) ) = ( T =? T1) /\ Decompose(TL , TL1) .
 ---op Decomposen ( TL , (TL1 # TL2)) = Decompose (TL, TL1) /\ Decompose (TL, TL2) .
 ---op Decomposen ( TL , TL1  ) = Decompose (TL, TL1) .
 
-------------------------------------------------------------------------------------------------------
-----------Capture equations of the form x= f(v)-------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----------Capture equations of the form x= f(v)--------------------------------------------
 
 op GetEqsVf : Variable Qid UnificationProblem -> UnificationProblem .
 ceq GetEqsVf ( V, QI1, V1 =? T ) = ( V1 =? T ) if GetSymbol(T) == QI1 /\ V == V1 .
@@ -644,7 +653,7 @@ eq GenNewVarN ( 1, ty, N ) = ( GenNewVar( ty, N ) ) .
 eq GenNewVarN ( (s N1), ty, N ) = ( GenNewVar( ty, N), (GenNewVarN ( N1 , ty , (N + 1) ) ) ) .
 
 -----------------------------------------------------------
---- Helper function for Imit rule
+---Helper function for Imit rule---------------------------
 -----------------------------------------------------------
 
 op RecDecomp : UnificationProblem TermList -> UnificationProblem .
@@ -673,14 +682,6 @@ eq RetVar ( V =? QI1 [TL] ) =  V .
 op RetQid : UnificationProblem -> Qid .
 eq RetQid ( V =? QI1 [TL] /\ UnPr ) =  QI1 .
 eq RetQid ( V =? QI1 [TL] ) =  QI1 .
-
-------------------------------------------
---- 0. Update Box assigned list
-------------------------------------------
-
-ceq bsmUnify ( UnPr, RW, BAL, N, SB ) = bsmUnify (UnPr, RW, addUPBAL (UnPr, BAL), N, SB ) if CheckUPinBAL (UnPr , BAL) == false .
-
-
 ------------------------------------------------------------
 ----5. Split -----------------------------------------------
 ------------------------------------------------------------
@@ -688,13 +689,6 @@ ceq bsmUnify ( UnPr, RW, BAL, N, SB ) = bsmUnify (UnPr, RW, addUPBAL (UnPr, BAL)
 ceq bsmUnify( QI1[TL]  =? T /\ UnPr, RW, BAL, N, SB) = bsmUnify ( GenNewVar(getType(T), N ) =?  QI1[TL] /\ GenNewVar( getType (T) , N) =? T /\ UnPr, RW, BAL, N + 1, SB ) if IsVar(T) == false .
 
 ceq bsmUnify( QI1[TL]  =? T, RW, BAL, N, SB) = bsmUnify ( GenNewVar(getType(T), N ) =?  QI1[TL] /\ GenNewVar( getType (T) , N) =? T , RW, BAL, N + 1, SB ) if IsVar(T) == false .
-
-------------------------------------------
---- 1. occurcheck
-------------------------------------------
- 
-ceq bsmUnify ( V =? T /\ UnPr, RW, BAL, N, SB ) = fail if Occurs (V , T) == true .
-ceq bsmUnify ( V =? T , RW, BAL, N, SB ) = fail if Occurs (V , T) == true .
 
 ------------------------------------------------------------
 -----3. Trivial --------------------------------------------
@@ -712,6 +706,53 @@ ceq bsmUnify ( T =? V /\ UnPr, RW, BAL, N, SB ) = bsmUnify ( V =? T /\ UnPr, RW,
 ceq bsmUnify ( T =? V, RW, BAL, N, SB ) = bsmUnify ( V =? T, RW, BAL, N, SB ) if IsVar(T) == false .
 
 
+------------------------------------------
+--- 0. Update Box assigned list
+------------------------------------------
+
+ceq bsmUnify ( UnPr, RW, BAL, N, SB ) = bsmUnify (UnPr, RW, addUPBAL (UnPr, BAL), N, SB ) if CheckUPinBAL (UnPr , BAL) == false .
+
+
+----------------------------------------------------
+--- Return substitution if all the terms are boxed--
+----------------------------------------------------
+
+ceq bsmUnify ( UnPr, RW, BAL, N, SB ) = SB if IsBoxedBAL (BAL) == true . 
+
+------------------------------------------------------------
+----8. ImitCycle -----------------------------------------------
+------------------------------------------------------------
+
+ceq bsmUnify(V =? QI[TL]  /\ UnPr, RW, BAL, N, SB) =  bsmUnify (  V =? QI [ GenNewVarN ( size (TL) , getType(V), N ) ] /\ Decompose ( GenNewVarN ( size (TL) , getType(V), N ) , TL) /\ UnPr, RW, (QI [ GenNewVarN ( size (TL) , getType(V), N ) ] , true ) \/ BAL, ( N + size (TL) )
+, SB ) if IsBoxed (QI[TL], BAL) == false /\ Occurs (V, TL) == true .
+
+ceq bsmUnify(V =? QI[TL] , RW, BAL, N, SB) =  bsmUnify (  V =? QI [ GenNewVarN ( size (TL) , getType(V), N ) ] /\ Decompose ( GenNewVarN ( size (TL) , getType(V), N ) , TL) , RW, (QI [ GenNewVarN ( size (TL) , getType(V), N ) ] , true ) \/ BAL, ( N + size (TL) )
+, SB ) if IsBoxed (QI[TL], BAL) == false /\ Occurs (V, TL) == true .
+
+------------------------------------------------------------
+----7. MutConflict-2 ---------------------------------------
+------------------------------------------------------------
+
+--- f(vec(v)) is unboxed and there is an equation x = f (vec (v)) occurs in a cycle
+
+ceq bsmUnify( V =? QI[TL] /\ V =? T /\ UnPr, RW, BAL, N, SB) = bsmUnify ( V =?  aplyRewrule (QI[TL], RW) /\ Decompose (aplyrlRetTL (QI[TL], RW) , TL ) /\ V =? T /\ UnPr, RW, (aplyRewrule (QI[TL], RW), true) \/ (aplyrlRetTL (QI[TL], RW), true) \/ BAL, N, SB ) if IsBoxed (QI[TL], BAL) == false /\ Occurs (V, TL) == true .
+
+ceq bsmUnify( V =? QI[TL] /\ V =? T, RW, BAL, N, SB) = bsmUnify ( V =?  aplyRewrule (QI[TL], RW) /\ Decompose (aplyrlRetTL (QI[TL], RW) , TL )  /\ V =? T, RW, (aplyRewrule (QI[TL], RW), true) \/ (aplyrlRetTL (QI[TL], RW), true) \/ BAL, N, SB ) if IsBoxed (QI[TL], BAL) == false /\ Occurs (V, TL) == true .
+
+
+
+
+------------------------------------------
+--- 1. occurcheck
+------------------------------------------
+ 
+ceq bsmUnify ( V =? T /\ UnPr, RW, BAL, N, SB ) = fail if Occurs (V , T) == true .
+ceq bsmUnify ( V =? T , RW, BAL, N, SB ) = fail if Occurs (V , T) == true .
+
+
+
+
+
 
 ------------------------------------------------------------
 ----6. Imit -----------------------------------------------
@@ -721,11 +762,11 @@ ceq bsmUnify( UnPr, RW, BAL, N, SB) =  bsmUnify (  RetVar(UnPr) =? RetQid (UnPr)
 GetEqsVfTL ( ( GenNewVarN ( RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N ) ), GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr )  ) /\ GetOtherEqs ( RetVar(UnPr), RetQid(UnPr), UnPr), RW , ( (RetQid (UnPr) [ GenNewVarN ( RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N ) ], true) \/ BAL), size (GenNewVarN ( RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ), getType(RetVar(UnPr)), N )), SB )  if RetSize ( GetEqsVf ( RetVar(UnPr), RetQid (UnPr), UnPr ) ) >= 2 .
 
 
-
 ------------------------------------------------------------
-----7. MutConflict ----------------------------------
+----7. MutConflict-1 ---------------------------------------
 ------------------------------------------------------------
 
+--- f(vec(v)) is unboxed and there is an equation x = u where u is a non-variable term 
 
 ceq bsmUnify( V =? QI[TL] /\ V =? T /\ UnPr, RW, BAL, N, SB) = bsmUnify ( V =?  aplyRewrule (QI[TL], RW) /\ Decompose (aplyrlRetTL (QI[TL], RW) , TL ) /\ V =? T /\ UnPr, RW, (aplyRewrule (QI[TL], RW), true) \/ (aplyrlRetTL (QI[TL], RW), true) \/ BAL, N, SB ) if IsBoxed (QI[TL], BAL) == false /\ IsVar (T) == false .
 
@@ -736,8 +777,20 @@ ceq bsmUnify( V =? QI[TL] /\ V =? T , RW, BAL, N, SB) = bsmUnify ( V =?  aplyRew
 --- 4. Coalesce 
 -------------------------------------------------------------
 
-ceq bsmUnify ( V =? V1 /\ UnPr, RW, BAL, N, SB) = bsmUnify (Substitute( UnPr, V <- V1), RW, BAL, N, V <- V1 ; Substitute (SB, V <- V1)) if Occurs( V, UnPr) == true /\ Occurs (V1, UnPr) == true .
+---ceq bsmUnify ( V =? V1 /\ UnPr, RW, BAL, N, SB) = bsmUnify (Substitute( UnPr, V <- V1), RW, BAL, N, V <- V1 ; Substitute (SB, V <- V1)) if Occurs( V, UnPr) == true /\ Occurs (V1, UnPr) == true /\ V =/= V1 .
 
+
+------------------------------------------------------------     
+-----2. Decompose-------------------------------------------
+------------------------------------------------------------
+
+ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1] /\ UnPr,  RW, BAL, N, SB ) = fail if size ( (TL) ) =/= size ( (TL1) ) or (QI =/= QI1) .
+
+ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1], RW, BAL, N, SB ) = fail if  size ( (TL) ) =/= size ( (TL1) ) or (QI =/= QI1) .
+
+ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1] /\ UnPr,  RW, BAL, N, SB ) = bsmUnify( V =? QI[TL] /\ Decompose(TL, TL1) /\ UnPr,  RW, BAL, N, SB )  if  size ( (TL) ) == size ( (TL1) ) and (QI == QI1) .
+
+ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1],  RW, BAL, N, SB )= bsmUnify( V =? QI[TL] /\ Decompose(TL, TL1),  RW, BAL, N, SB ) if  size ( (TL) ) == size ( (TL1) ) and ( QI == QI1) .
 
 
 -------------------------------------------------------
@@ -755,27 +808,8 @@ ceq bsmUnify(  V =? QI1 [TL] /\ V =? QI2 [TL1] , RW, BAL, N, SB ) = fail if QI1 
 ---eq bsmUnify(  V =? C /\ V =? QI[TL] /\ UnPr, RW, BAL, N, SB ) = fail .
 ---eq bsmUnify(  V =? C /\ V =? QI[TL] , RW, BAL, N, SB ) = fail .
 
-------------------------------------------------------------     
------2. Decompose-------------------------------------------
-------------------------------------------------------------
 
-ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1] /\ UnPr,  RW, BAL, N, SB ) = fail if size ( (TL) ) =/= size ( (TL1) ) or (QI =/= QI1) .
 
-ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1], RW, BAL, N, SB ) = fail if  size ( (TL) ) =/= size ( (TL1) ) or (QI =/= QI1) .
-
-ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1] /\ UnPr,  RW, BAL, N, SB ) = bsmUnify( V =? QI[TL] /\ Decompose(TL, TL1) /\ UnPr,  RW, BAL, N, SB )  if  size ( (TL) ) == size ( (TL1) ) and (QI == QI1) .
-
-ceq bsmUnify( V =? QI[TL] /\ V =? QI1[TL1],  RW, BAL, N, SB )= bsmUnify( V =? QI[TL] /\ Decompose(TL, TL1),  RW, BAL, N, SB ) if  size ( (TL) ) == size ( (TL1) ) and ( QI == QI1) .
-
-------------------------------------------------------------
-----8. ImitCycle -----------------------------------------------
-------------------------------------------------------------
-
-ceq bsmUnify(V =? QI[TL]  /\ UnPr, RW, BAL, N, SB) =  bsmUnify (  V =? QI [ GenNewVarN ( size (TL) , getType(V), N ) ] /\ Decompose ( GenNewVarN ( size (TL) , getType(V), N ) , TL) /\ UnPr, RW, (QI [ GenNewVarN ( size (TL) , getType(V), N ) ] , true ) \/ BAL, ( N + size (TL) )
-, SB ) if IsBoxed (QI[TL], BAL) == false .
-
-ceq bsmUnify(V =? QI[TL] , RW, BAL, N, SB) =  bsmUnify (  V =? QI [ GenNewVarN ( size (TL) , getType(V), N ) ] /\ Decompose ( GenNewVarN ( size (TL) , getType(V), N ) , TL) , RW, (QI [ GenNewVarN ( size (TL) , getType(V), N ) ] , true ) \/ BAL, ( N + size (TL) )
-, SB ) if IsBoxed (QI[TL], BAL) == false .
 
 --------------------------------------------------------
 ---9. Variable Elimination
