@@ -1,11 +1,11 @@
 
-## Basic Syntactic Mutation (BSM)
+## Basic Syntactic Mutation
 
-Basic syntactic mutation prime is a new mutation based unification algorithm
-for theories defined by rewrite systems which are both convergent and
-forward-closed. The algorithm is well suited for combination. The BSM procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
+Basic Syntactic Mutation (BSM) is a mutation based unification algorithm for the theories that are saturated by paramodulation. The algorithm has been introduced by Christopher Lynch *et al.* in [Basic Syntactic Mutation](http://people.clarkson.edu/~clynch/PAPERS/bsm.ps). In order to solve an unification problem in the theories that are both convergent and forward closed, we propose a new and simplified mutation based unification algorithm, and it called as BSM'.
+The BSM' procedure consists of inference rules such as **Coalesce**, **Split**, **Imit**, **MuConflict**, and **ImitCycle**. 
+We have implemented the procedure in [Maude](http://maude.cs.illinois.edu/), a high performance reflective language.
 
-For description of the BSM procedure, also know as BSM' in the paper, the reader is directed to the paper below.
+For more details about the BSM' procedure, please see the following paper.
 * Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Unification in Non-Disjoint Combinations with Forward-Closed Theories (extended verison)](http://members.loria.fr/CRingeissen/files/papers/combi-fc.pdf).
 
 
