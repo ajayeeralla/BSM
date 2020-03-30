@@ -44,7 +44,7 @@ Download .maude file(s) to a directory. Then navigate to the directory and run t
 
  ## Publications
 
-* Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Rule-Based Unification in Combined Theories and the Finite Variant Property](https://link.springer.com/chapter/10.1007/978-3-030-13435-8_26)in Language and Automata Theory and Applications - 13th International Conference, LATA 2019, St. Petersburg, Russia, March 26-29, 2019, Proceedings.
+* Ajay K. Eeralla, Serdar Erbatur, Andrew M. Marshall, Christophe Ringeissen. [Rule-Based Unification in Combined Theories and the Finite Variant Property](https://link.springer.com/chapter/10.1007/978-3-030-13435-8_26) in Language and Automata Theory and Applications - 13th International Conference, LATA 2019, St. Petersburg, Russia, March 26-29, 2019, Proceedings.
 
 <!---## Authors
 * Ajay Kumar Eeralla, University of Missouri-Columbia (USA)
